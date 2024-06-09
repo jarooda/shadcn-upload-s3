@@ -14,6 +14,8 @@ import {
   FormMessage
 } from "@/components/ui/form"
 
+import { getAWSSignedUrl } from "@/app/actions"
+
 const MAX_FILE_SIZE = 1000000 // 1MB
 const ACCEPTED_IMAGE_TYPES = [
   "image/png",
@@ -42,7 +44,23 @@ export default function Home() {
     const formData = new FormData()
     formData.append("file", file)
 
-    console.log(formData.get("file"))
+    const { putUrl } = await getAWSSignedUrl({
+      fileName: file.name,
+      fileType: file.type
+    })
+
+    const response = await fetch(putUrl, {
+      body: file,
+      method: "PUT",
+      headers: { "Content-Type": file.type }
+    })
+
+    if (!response.ok) {
+      console.error("Failed to upload image")
+      return
+    }
+
+    console.log("Image uploaded successfully")
   }
 
   return (
